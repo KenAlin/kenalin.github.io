@@ -19,9 +19,9 @@
 	<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
 </head>
 <body>
-  <div id="mapT"></div>
+  	<div id="mapT"></div>
 	<script>
-		function numberWithCommas(x) {
+		function numberSpaced(x) {
 			if (x != null) return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 			else return 0;
 		}
@@ -48,7 +48,7 @@
 			shadowSize:   [0, 0],
 			iconAnchor:   [13, 13],
 			shadowAnchor: [13, -13],
-			popupAnchor:  [13, -13]
+			popupAnchor:  [-1, -9]
 		});
 
 		var iconeB = L.icon({
@@ -58,7 +58,7 @@
 			shadowSize:   [0, 0],
 			iconAnchor:   [11, 11],
 			shadowAnchor: [11, -11],
-			popupAnchor:  [11, -11]
+			popupAnchor:  [-1, -8]
 		});
 
 		var iconeC = L.icon({
@@ -68,7 +68,7 @@
 			shadowSize:   [0, 0],
 			iconAnchor:   [8, 8],
 			shadowAnchor: [8, -8],
-			popupAnchor:  [8, -8]
+			popupAnchor:  [-1, -6]
 		});
 
 		var iconeD = L.icon({
@@ -78,7 +78,7 @@
 			shadowSize:   [0, 0],
 			iconAnchor:   [8, 8],
 			shadowAnchor: [8, -8],
-			popupAnchor:  [8, -8]
+			popupAnchor:  [-1, -6]
 		});
 
 		var iconeE = L.icon({
@@ -88,7 +88,7 @@
 			shadowSize:   [0, 0],
 			iconAnchor:   [5, 5],
 			shadowAnchor: [5, -5],
-			popupAnchor:  [5, -5]
+			popupAnchor:  [-1, -3]
 		});
 
 		var iconeF = L.icon({
@@ -98,7 +98,7 @@
 			shadowSize:   [0, 0],
 			iconAnchor:   [5, 5],
 			shadowAnchor: [5, -5],
-			popupAnchor:  [5, -5]
+			popupAnchor:  [-1, -3]
 		});
 
 		var iconeG = L.icon({
@@ -108,7 +108,7 @@
 			shadowSize:   [0, 0],
 			iconAnchor:   [5, 5],
 			shadowAnchor: [5, -5],
-			popupAnchor:  [5, -5]
+			popupAnchor:  [-1, -3]
 		});
 
 		var iconeH = L.icon({
@@ -118,7 +118,7 @@
 			shadowSize:   [0, 0],
 			iconAnchor:   [4, 4],
 			shadowAnchor: [4, -4],
-			popupAnchor:  [4, -4]
+			popupAnchor:  [-1, -2]
 		});
 			
 		var mapTiles = L.tileLayer('https://a.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -126,46 +126,61 @@
 		});
 
 		$.getJSON("files/freq_gares.geojson", function(data) {
+			var map = L.map('mapT');
+			var mapLayerGroups = [];
 			var attrib = L.control.attribution({prefix: "Open Data SNCF"});
-			//attrib.addAttribution("Données Open Data SNCF");
-			var geojson = L.geoJson(data, {
-				onEachFeature: function (feature, layer) {
-					var txtPopup = "<b>"+feature.properties.intitule_fronton_de_gare+"</b><br>"
-									+ "<hr>"
-									+ "Commune : "+feature.properties.commune+"<br>"
-									+"<br>Fréquentation :<br>"
-									+ "2014 : "+numberWithCommas(feature.properties.freq14)+"<br>"
-									+ "2015 : "+numberWithCommas(feature.properties.freq15)+" ("+evolution(feature.properties.freq14, feature.properties.freq15)+")";
-					layer.bindPopup(txtPopup);
-				},
-				pointToLayer: function(feature, latlng) {
-					if (feature.properties.freq15 >= 2500000) {
-						return new L.Marker(new L.LatLng(feature.geometry.coordinates[1],feature.geometry.coordinates[0]),{icon: iconeA});
-					}
-					else if (feature.properties.freq15 >= 1000000) {
-						return new L.Marker(new L.LatLng(feature.geometry.coordinates[1],feature.geometry.coordinates[0]),{icon: iconeB});
-					}
-					else if (feature.properties.freq15 >= 500000) {
-						return new L.Marker(new L.LatLng(feature.geometry.coordinates[1],feature.geometry.coordinates[0]),{icon: iconeC});
-					}
-					else if (feature.properties.freq15 >= 100000) {
-						return new L.Marker(new L.LatLng(feature.geometry.coordinates[1],feature.geometry.coordinates[0]),{icon: iconeD});
-					}
-					else if (feature.properties.freq15 >= 25000) {
-						return new L.Marker(new L.LatLng(feature.geometry.coordinates[1],feature.geometry.coordinates[0]),{icon: iconeE});
-					}
-					else if (feature.properties.freq15 >= 10000) {
-						return new L.Marker(new L.LatLng(feature.geometry.coordinates[1],feature.geometry.coordinates[0]),{icon: iconeF});
-					}
-					else if (feature.properties.freq15 >= 1000) {
-						return new L.Marker(new L.LatLng(feature.geometry.coordinates[1],feature.geometry.coordinates[0]),{icon: iconeG});
-					}
-					else {
-						return new L.Marker(new L.LatLng(feature.geometry.coordinates[1],feature.geometry.coordinates[0]),{icon: iconeH});
-					}
+			
+			var geojson = L.geoJson(data, {onEachFeature: onEachFeature, pointToLayer: pointToLayer, filter: freqFilter});
+
+			function onEachFeature(feature, layer) {
+				var txtPopup = "<b>"+feature.properties.nom+"</b><br>"
+							+ "<hr>"
+							+ "Commune : "+feature.properties.commune+"<br>"
+							+"<br>Fréquentation :<br>"
+							+ "2014 : "+numberSpaced(feature.properties.freq14)+"<br>"
+							+ "2015 : "+numberSpaced(feature.properties.freq15)+" ("+evolution(feature.properties.freq14, feature.properties.freq15)+")";
+				layer.bindPopup(txtPopup);
+				var lg = mapLayerGroups[feature.properties.region];
+				if (lg === undefined) {
+					lg = new L.layerGroup();
+					lg.addTo(map);
+					mapLayerGroups[feature.properties.region] = lg;
 				}
-			});
-			var map = L.map('mapT').fitBounds(geojson.getBounds());
+				lg.addLayer(layer);      
+			}
+
+			function pointToLayer(feature, latlng) {
+				if (feature.properties.freq15 >= 2500000 && feature.properties.segment_drg == "a") {
+					return new L.Marker(new L.LatLng(feature.geometry.coordinates[1],feature.geometry.coordinates[0]),{icon: iconeA});
+				}
+				else if (feature.properties.freq15 >= 1000000) {
+					return new L.Marker(new L.LatLng(feature.geometry.coordinates[1],feature.geometry.coordinates[0]),{icon: iconeB});
+				}
+				else if (feature.properties.freq15 >= 500000) {
+					return new L.Marker(new L.LatLng(feature.geometry.coordinates[1],feature.geometry.coordinates[0]),{icon: iconeC});
+				}
+				else if (feature.properties.freq15 >= 100000) {
+					return new L.Marker(new L.LatLng(feature.geometry.coordinates[1],feature.geometry.coordinates[0]),{icon: iconeD});
+				}
+				else if (feature.properties.freq15 >= 25000) {
+					return new L.Marker(new L.LatLng(feature.geometry.coordinates[1],feature.geometry.coordinates[0]),{icon: iconeE});
+				}
+				else if (feature.properties.freq15 >= 10000) {
+					return new L.Marker(new L.LatLng(feature.geometry.coordinates[1],feature.geometry.coordinates[0]),{icon: iconeF});
+				}
+				else if (feature.properties.freq15 >= 1000) {
+					return new L.Marker(new L.LatLng(feature.geometry.coordinates[1],feature.geometry.coordinates[0]),{icon: iconeG});
+				}
+				else {
+					return new L.Marker(new L.LatLng(feature.geometry.coordinates[1],feature.geometry.coordinates[0]),{icon: iconeH});
+				}
+			}
+
+			function freqFilter(feature) {
+				if (feature.properties.freq15 != 0) return true
+			}
+
+			map = map.fitBounds(geojson.getBounds());
 			mapTiles.addTo(map);
 			geojson.addTo(map);
 			attrib.addTo(map);
