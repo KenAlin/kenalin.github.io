@@ -1,0 +1,231 @@
+<!doctype html>
+<html>
+<head>
+  <title>Carte des parkings libres à Montpellier</title>
+  <meta charset="utf-8">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+  <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+  <script src="https://use.fontawesome.com/079e0b3c8b.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
+	<script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
+	<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+  <style>
+    body{
+    	margin:0;
+    	color:#444;
+    	font:400 16px/18px Roboto, sans-serif;
+    }
+    *,:after,:before{box-sizing:border-box}
+    .pull-left{float:left}
+    .pull-right{float:right}
+    .clearfix:after,.clearfix:before{content:'';display:table}
+    .clearfix:after{clear:both;display:block}
+
+    .accordion-wrap{
+    	top:0;
+    	left:0;
+    	right:0;
+    	bottom:0;
+    	padding:15px;
+    	position:fixed;
+    	background: url('files/bg_parkings.png') no-repeat;
+      background-size: cover;
+    }
+    .accordion{
+    	width:95%;
+    	margin:auto;
+    	max-width:520px;
+    	overflow:hidden;
+    	border-radius:3px;
+    	background:#B7AFA3;
+    	box-shadow:0 17px 50px 0 rgba(0,0,0,.19),0 12px 15px 0 rgba(0,0,0,.24);
+    }
+    .accordion>a.acc_link{
+    	color:#374046;
+    	padding:15px;
+    	display:block;
+    	text-decoration:none;
+    	transition:all .3s ease-in-out 0s;
+      max-width: 300px;
+    }
+    .accordion>a.acc_link:not(:last-child){
+    	border-bottom:1px solid rgba(0,0,0,.2);
+    }
+    .accordion>a.acc_link:hover,
+    .accordion>a.acc_link.active{
+    	background:#E8D0A9;
+    }
+    .accordion>a.acc_link.active{
+    	color:#B77F24;
+    }
+    .accordion>a.acc_link>.alert-numb,
+    .accordion>.sub-nav>a.acc_link>.alert-numb{
+    	color:#eee;
+    	right:10px;
+    	height:22px;
+    	min-width:40px;
+    	font-size:12px;
+    	font-weight:600;
+    	line-height:22px;
+    	border-radius:15px;
+    	text-align:center;
+    	background:#665e51;
+    }
+    .accordion>a.acc_link.active>.alert-numb,
+    .accordion>.sub-nav>a.acc_link.active>.alert-numb{
+    	background:#d0a051;
+    }
+    .accordion .sub-nav{
+    	color:#374046;
+    	overflow:hidden;
+    	background:#ecf0f1;
+    }
+    .accordion .sub-nav.open{
+    	display:block;
+    }
+    .accordion .sub-nav a.acc_link{
+    	display:block;
+    	color:inherit;
+    	font-weight:300;
+    	padding:10px 15px;
+    	text-decoration:none;
+    	transition:all .2s ease-in-out 0s;
+    }
+    .accordion .sub-nav a.acc_link{
+    	border:2px solid rgba(0,0,0,.1);
+      font-weight: bold;
+      margin: 2px auto;
+      max-width: 300px;
+    }
+    .accordion .sub-nav a.acc_link:hover{
+    	background:#c2ced1;
+    	box-shadow:5px 0 0 #8ca3a8 inset;
+    }
+
+    .accordion .html{
+    	padding:15px;
+    }
+    .accordion .about-me{
+    	text-align:center;
+    	position:relative;
+    }
+    .accordion .about-me h4{
+    	margin-bottom:10px;
+      padding-bottom: 15px;
+      font-size: 135%;
+      border-bottom: dashed 1px #bbb;
+    }
+    .accordion .about-me p{
+    	font-size:14px;
+    	font-weight:300;
+    	margin-bottom:0;
+    }
+    #mapP {
+      height: 300px;
+      width: 95%;
+    }
+  </style>
+</head>
+<body>
+  <div class="accordion-wrap">
+  	<div class="accordion">
+  		<div class="sub-nav active">
+  			<div class="html about-me">
+  				<h4>Parkings libres à Montpellier</h4>
+  				<p>Cette carte vous permet de localiser les parkings ayant des places libres sur Montpellier. Les données sont issues du site Open Data de la métropole, et sont actualisées toutes les 5 minutes environ.</p>
+          <br>
+          <div id="mapP"></div>
+          <script>
+            function numberWithCommas(x) {
+              if (x != null) return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+              else return 0;
+            }
+
+            function evolution(x, y) {
+              if (x == 0 || y == 0 || x == null || y == null) return "-";
+              else {
+                if (x == y) return "+0%";
+                else if (x > y) {
+                  var diff = Math.round((1-(y/x))*1000)/10;
+                  return "<span style=\"color:red;\">-"+diff+"%</span>";
+                }
+                else {
+                  var diff = Math.round(((y/x)-1)*1000)/10;
+                  return "<span style=\"color:green;\">+"+diff+"%</span>";
+                }
+              }
+            }
+
+            var iconeA = L.icon({
+              iconUrl: 'files/dot_green.png',
+              shadowUrl: null,
+              iconSize:     [21, 21],
+              shadowSize:   [0, 0],
+              iconAnchor:   [11, 11],
+              shadowAnchor: [11, -11],
+              popupAnchor:  [0, -7]
+            });
+
+            var iconeB = L.icon({
+              iconUrl: 'files/dot_orange.png',
+              shadowUrl: null,
+              iconSize:     [21, 21],
+              shadowSize:   [0, 0],
+              iconAnchor:   [11, 11],
+              shadowAnchor: [11, -11],
+              popupAnchor:  [0, -7]
+            });
+
+            var iconeC = L.icon({
+              iconUrl: 'files/dot_red.png',
+              shadowUrl: null,
+              iconSize:     [21, 21],
+              shadowSize:   [0, 0],
+              iconAnchor:   [11, 11],
+              shadowAnchor: [11, -11],
+              popupAnchor:  [0, -7]
+            });
+              
+            var mapTiles = L.tileLayer('https://a.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              maxZoom: 18
+            });
+
+            $.getJSON("http://wave-it.fr/labs/data/parkings", function(data) {
+              var attrib = L.control.attribution({prefix: "Open Data Montpellier 3M"});
+              var geojson = L.geoJson(data, {
+                onEachFeature: function (feature, layer) {
+                  var txtPopup = "<b>"+feature.properties.nom+"</b><br>"
+                          + "<hr>"
+                          +"<b>Places :</b><br>"
+                          + "Libres : "+numberWithCommas(feature.properties.libre)+"<br>"
+                          + "Total : "+numberWithCommas(feature.properties.tot);
+                  layer.bindPopup(txtPopup);
+                },
+                pointToLayer: function(feature, latlng) {
+                  if (feature.properties.libre/feature.properties.tot >= 0.4) {
+                    return new L.Marker(new L.LatLng(feature.geometry.coordinates[1],feature.geometry.coordinates[0]),{icon: iconeA});
+                  }
+                  else if (feature.properties.libre/feature.properties.tot >= 0.1) {
+                    return new L.Marker(new L.LatLng(feature.geometry.coordinates[1],feature.geometry.coordinates[0]),{icon: iconeB});
+                  }
+                  else {
+                    return new L.Marker(new L.LatLng(feature.geometry.coordinates[1],feature.geometry.coordinates[0]),{icon: iconeC});
+                  }
+                }
+              });
+              var map = L.map('mapP').fitBounds(geojson.getBounds());
+              mapTiles.addTo(map);
+              geojson.addTo(map);
+              attrib.addTo(map);
+            });
+          </script>
+          <br>
+          <a class="acc_link" href="http://data.montpellier3m.fr/dataset/disponibilite-des-places-dans-les-parkings-de-montpellier-mediterranee-metropole" target="_blank"><i class="fa fa-bullhorn"></i> Source des données</a>
+          <a class="acc_link" href="https://github.com/KenAlin/" target="_blank"><i class="fa fa-github"></i> Github</a>
+          <p style="font-style: italic; font-size: 0.75em;">-- Façonné en mars 2017 • Kévin Servigé --</p>
+  			</div>
+  		</div>
+  	</div>
+  </div>
+</body>
+</html>
