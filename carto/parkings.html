@@ -32,7 +32,7 @@
       background-size: cover;
     }
     .accordion{
-    	width:95%;
+    	width:98%;
     	margin:auto;
     	max-width:520px;
     	overflow:hidden;
@@ -196,7 +196,7 @@
                 onEachFeature: function (feature, layer) {
                   var txtPopup = "<b>"+feature.properties.nom+"</b><br>"
                           + "<hr>"
-                          +"<b>Places :</b><br>"
+                          + "<b>Places :</b><br>"
                           + "Libres : "+numberWithCommas(feature.properties.libre)+"<br>"
                           + "Total : "+numberWithCommas(feature.properties.tot);
                   layer.bindPopup(txtPopup);
@@ -205,7 +205,7 @@
                   if (feature.properties.libre/feature.properties.tot >= 0.4) {
                     return new L.Marker(new L.LatLng(feature.geometry.coordinates[1],feature.geometry.coordinates[0]),{icon: iconeA});
                   }
-                  else if (feature.properties.libre/feature.properties.tot >= 0.1) {
+                  else if (feature.properties.libre/feature.properties.tot >= 0.15) {
                     return new L.Marker(new L.LatLng(feature.geometry.coordinates[1],feature.geometry.coordinates[0]),{icon: iconeB});
                   }
                   else {
@@ -221,8 +221,7 @@
           </script>
           <br>
           <a class="acc_link" href="http://data.montpellier3m.fr/dataset/disponibilite-des-places-dans-les-parkings-de-montpellier-mediterranee-metropole" target="_blank"><i class="fa fa-bullhorn"></i> Source des données</a>
-          <a class="acc_link" href="https://github.com/KenAlin/" target="_blank"><i class="fa fa-github"></i> Github</a>
-          <p style="font-style: italic; font-size: 0.75em;">-- Façonné en mars 2017 • Kévin Servigé --</p>
+          <p style="font-style: italic; font-size: 0.75em;">-- Façonné en mars 2017 • <a href="https://github.com/KenAlin/" target="_blank">Kévin Servigé</a> --</p>
   			</div>
   		</div>
   	</div>
