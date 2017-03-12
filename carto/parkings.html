@@ -190,7 +190,7 @@
               maxZoom: 18
             });
 
-            $.getJSON("http://wave-it.fr/labs/data/parkings", function(data) {
+            $.getJSON("http://wave-it.fr/labs/data/parkings.php", function(data) {
               var attrib = L.control.attribution({prefix: "Open Data Montpellier 3M"});
               var geojson = L.geoJson(data, {
                 onEachFeature: function (feature, layer) {
